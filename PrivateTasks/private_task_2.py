@@ -1,5 +1,6 @@
 class Task2:
-    def __int__(self):
+    def __init__(self):
+        print("Init task 2")
         return
 
     def Task2_Run(self):
