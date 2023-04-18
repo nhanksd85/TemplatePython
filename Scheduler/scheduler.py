@@ -2,13 +2,13 @@ from Scheduler.task import *
 
 
 class Scheduler:
-    def __int__(self):
-        return
-
-    TICK = 10
+    TICK = 100
     SCH_MAX_TASKS = 40
     SCH_tasks_G = []
     current_index_task = 0
+
+    def __int__(self):
+        return
 
     def SCH_Init(self):
         self.current_index_task = 0
