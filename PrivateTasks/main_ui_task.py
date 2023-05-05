@@ -2,7 +2,9 @@ import tkinter as tk
 from tkinter import *
 import time
 class Main_UI:
-    def __init__(self):
+    dataModel = None
+    def __init__(self, data):
+        self.dataModel = data
         print("Init the UI")
         self.is_on = True
         self.window = tk.Tk()
@@ -93,6 +95,7 @@ class Main_UI:
 
         self.on_button.place(x=0, y=600, width=screen_width)
 
+
     # define the click event of the toggle
     def toggle_button_click(self):
         # Determine is on or off
@@ -106,7 +109,11 @@ class Main_UI:
 
 
     def UI_Refresh(self):
+        self.UI_Set_Text(self.labelPHValue, self.dataModel.PH_Value)
+        self.UI_Set_Text(self.labelTDSValue, self.dataModel.TSS_Value)
+        self.UI_Set_Text(self.labelAMONIAValue, self.dataModel.NH3_Value)
         self.window.update()
 
+
     def UI_Set_Text(self,text_object, data):
-        text_object.config(text=str(data))
+        text_object.config(text="%.2f" % data)

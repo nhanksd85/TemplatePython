@@ -25,6 +25,21 @@ class Modbus485:
             out = ser.read(bytesToRead)
             print("Buffer: ", out)
 
+    def modbus485_read_adc(self):
+        ser = self.rs485
+        bytesToRead = ser.inWaiting()
+        if bytesToRead > 0:
+            out = ser.read(bytesToRead)
+            data_array = [b for b in out]
+            print(data_array)
+            if len(data_array) >= 7:
+                array_size = len(data_array)
+                value = data_array[array_size - 4] * 256 + data_array[array_size - 3]
+                return value
+            else:
+                return 400
+        return 404
+
     def modbus485_read_big_endian(self):
         ser = self.rs485
         bytesToRead = ser.inWaiting()

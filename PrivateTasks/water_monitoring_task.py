@@ -1,5 +1,5 @@
 import enum
-
+from PrivateTasks.rapido_server_task import *
 class WMR_Status(enum.Enum):
     INIT = 1
     PUMP_ON = 2
@@ -8,6 +8,8 @@ class WMR_Status(enum.Enum):
     READ_PH = 4
     READ_TSS = 5
     READ_NH3 = 6
+    READ_DHT_TEMP = 10
+    READ_DHT_HUMI = 11
     IDLE = 8
 
 class WaterMonitoringTask:
@@ -23,9 +25,17 @@ class WaterMonitoringTask:
     TSS_CMD = [0x03, 0x03, 0x00, 0x01, 0x00, 0x02, 0x94, 0x29]
     NH3_CMD = [0x01, 0x03, 0x00, 0x01, 0x00, 0x02, 0x95, 0xCB]
 
+    TEMP_DHT_CMD = [0x0A, 0x03, 0x00, 0x00, 0x00, 0x01, 0x85, 0x71]
+    HUMI_DHT_CMD = [0x0A, 0x03, 0x00, 0x01, 0x00, 0x01, 0xD4, 0xB1]
+
     PH_Value = 7
     TSS_Value = 0
     NH3_Value = 0
+
+    TEMP_DHT_Value = 0
+    HUMI_DHT_Value = 0
+
+    rapidoServer = RapidoServerTask()
 
     def __init__(self, _soft_timer, _rs485):
         self.status = WMR_Status.INIT
@@ -87,15 +97,34 @@ class WaterMonitoringTask:
                 self.NH3_Value = self.rs485.modbus485_read_big_endian()
                 print("Reading NH3 Value: ", self.NH3_Value)
 
-                self.status = WMR_Status.IDLE
-                self.soft_timer.set_timer(0, self.IDLE_DELAY)
+                self.soft_timer.set_timer(0, self.SENSING_DELAY)
+                print("Sending DHT Temperature command...")
+                self.rs485.modbus485_send(self.TEMP_DHT_CMD)
+                self.status = WMR_Status.READ_DHT_TEMP
 
 
-                print("*******************")
-                print("PH: ", self.PH_Value, "TSS: ", self.TSS_Value, "NH3: ", self.NH3_Value)
-                print("*******************")
+        elif self.status == WMR_Status.READ_DHT_TEMP:
+            self.TEMP_DHT_Value = self.rs485.modbus485_read_adc()/10.0
+            print("Reading DHT Temperature Value: ", self.NH3_Value)
 
-                print("IDLING...")
+            self.soft_timer.set_timer(0, self.SENSING_DELAY)
+            print("Sending DHT Humidity command...")
+            self.rs485.modbus485_send(self.HUMI_DHT_CMD)
+            self.status = WMR_Status.READ_DHT_HUMI
+
+        elif self.status == WMR_Status.READ_DHT_HUMI:
+            self.HUMI_DHT_Value = self.rs485.modbus485_read_adc()/10.0
+            print("Reading DHT Humidity Value: ", self.HUMI_DHT_Value)
+
+            self.status = WMR_Status.IDLE
+            self.soft_timer.set_timer(0, self.IDLE_DELAY)
+            print("*******************")
+            print("PH: ", self.PH_Value, "TSS: ", self.TSS_Value, "NH3: ", self.NH3_Value)
+            print("DHT Temp: ", self.TEMP_DHT_Value, "DHT HUMI: ", self.HUMI_DHT_Value)
+            print("*******************")
+
+            self.rapidoServer.uploadData(self.PH_Value, self.TSS_Value, self.NH3_Value)
+            print("IDLING...")
 
         elif self.status == WMR_Status.IDLE:
             if self.soft_timer.is_timer_expired(0) == 1:
