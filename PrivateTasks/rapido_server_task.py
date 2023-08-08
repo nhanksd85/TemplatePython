@@ -6,7 +6,7 @@ class RapidoServerTask:
         objHTTP = HTTP()
         objHTTP.httpGet("abc")
         return
-    def uploadData(self, PH, TSS, AMONI):
+    def uploadData(self, PH, TSS, AMONI, TEMP, DHT_TEMP, DHT_HUMI):
         objHTTP = HTTP()
-        objHTTP.httpGet(PH, TSS, AMONI)
+        objHTTP.httpGet(PH, TSS, AMONI, TEMP, DHT_TEMP, DHT_HUMI)
         return
